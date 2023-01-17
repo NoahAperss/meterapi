@@ -22,7 +22,7 @@ namespace meterapi.Controllers
         [HttpGet]
         public IActionResult GetMeters()
         {
-            var meters = _context.Meters;
+            var meters = _context.Meters.Include(m => m.MeterDatas).Include(m => m.UserMeter);
             return Ok(meters);
         }
 
@@ -30,7 +30,7 @@ namespace meterapi.Controllers
         [HttpGet("{id}")]
         public IActionResult GetMeter(int id)
         {
-            var meter = _context.Meters.SingleOrDefault(m => m.Id == id);
+            var meter = _context.Meters.Include(m => m.MeterDatas).Include(m => m.UserMeter).SingleOrDefault(m => m.Id == id);
             if (meter == null)
             {
                 return NotFound();
@@ -38,7 +38,7 @@ namespace meterapi.Controllers
             return Ok(meter);
         }
 
-        /*// PUT: api/Meter/5
+    /*    // PUT: api/Meter/5
         [HttpPut("{id}")]
         public IActionResult PutMeter(int id, Meter meter)
         {
@@ -47,12 +47,12 @@ namespace meterapi.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(meter).State = Entities.EntityState.Modified;
+            _context.Entry(meter).State = Entity.EntityState.Modified;
 
             _context.SaveChanges();
             return NoContent();
-        }
-*/
+        }*/
+
         // POST: api/Meter
         [HttpPost]
         public IActionResult PostMeter(Meter meter)
@@ -61,9 +61,6 @@ namespace meterapi.Controllers
             _context.SaveChanges();
             return CreatedAtAction("GetMeter", new { id = meter.Id }, meter);
         }
-
-
-
 
         // DELETE: api/Meter/5
         [HttpDelete("{id}")]
@@ -80,5 +77,6 @@ namespace meterapi.Controllers
             return NoContent();
         }
     }
+
 }
 

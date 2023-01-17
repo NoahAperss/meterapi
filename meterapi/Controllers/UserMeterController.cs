@@ -1,7 +1,9 @@
-﻿using meterapi.Data;
-using meterapi.Models;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using meterapi.Data;
+using meterapi.Models;
+using Microsoft.Xrm.Sdk;
+using Microsoft.EntityFrameworkCore;
 
 namespace meterapi.Controllers
 {
@@ -10,10 +12,12 @@ namespace meterapi.Controllers
     public class UserMeterController : ControllerBase
     {
         private readonly DataContext _context;
+      
 
         public UserMeterController(DataContext context)
         {
             _context = context;
+          
         }
 
         // GET: api/UserMeter

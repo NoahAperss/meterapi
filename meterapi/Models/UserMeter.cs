@@ -12,6 +12,8 @@ namespace meterapi.Models
         
         public int RpId { get; set; }
 
+        public int MeterAId { get; set; }
+
         [ForeignKey("User")]
         public int UserId { get; set; }
         public string Address { get; set; }

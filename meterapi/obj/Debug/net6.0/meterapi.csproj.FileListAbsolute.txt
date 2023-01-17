@@ -88,3 +88,4 @@ C:\ProjectK3\meterapi\meterapi\bin\Debug\net6.0\System.CodeDom.dll
 C:\ProjectK3\meterapi\meterapi\bin\Debug\net6.0\System.Text.Encodings.Web.dll
 C:\ProjectK3\meterapi\meterapi\bin\Debug\net6.0\runtimes\browser\lib\net6.0\System.Text.Encodings.Web.dll
 C:\ProjectK3\meterapi\meterapi\bin\Debug\net6.0\BouncyCastle.Crypto.dll
+C:\ProjectK3\meterapi\meterapi\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

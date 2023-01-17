@@ -17,15 +17,12 @@ namespace meterapi.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MeterId = table.Column<int>(type: "int", nullable: false),
-                    RpId = table.Column<int>(type: "int", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    measurement = table.Column<int>(type: "int", nullable: false)
+                    MeterAId = table.Column<int>(type: "int", nullable: false),
+                    RpId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Meters", x => x.Id);
-                    table.UniqueConstraint("AK_Meters_MeterId_RpId", x => new { x.MeterId, x.RpId });
                 });
 
             migrationBuilder.CreateTable(
@@ -49,6 +46,30 @@ namespace meterapi.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MeterDatas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MeterId = table.Column<int>(type: "int", nullable: false),
+                    TotalConsumptionDay = table.Column<float>(type: "real", nullable: false),
+                    TotalConsumptionNight = table.Column<float>(type: "real", nullable: false),
+                    AllPhaseConsumption = table.Column<float>(type: "real", nullable: false),
+                    GasConsumption = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MeterDatas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MeterDatas_Meters_MeterId",
+                        column: x => x.MeterId,
+                        principalTable: "Meters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserMeters",
                 columns: table => new
                 {
@@ -56,6 +77,7 @@ namespace meterapi.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MeterId = table.Column<int>(type: "int", nullable: false),
                     RpId = table.Column<int>(type: "int", nullable: false),
+                    MeterAId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -63,8 +85,8 @@ namespace meterapi.Data.Migrations
                 {
                     table.PrimaryKey("PK_UserMeters", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserMeters_Meters_UserId",
-                        column: x => x.UserId,
+                        name: "FK_UserMeters_Meters_MeterId",
+                        column: x => x.MeterId,
                         principalTable: "Meters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -77,6 +99,16 @@ namespace meterapi.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_MeterDatas_MeterId",
+                table: "MeterDatas",
+                column: "MeterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserMeters_MeterId",
+                table: "UserMeters",
+                column: "MeterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserMeters_UserId",
                 table: "UserMeters",
                 column: "UserId");
@@ -85,6 +117,9 @@ namespace meterapi.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "MeterDatas");
+
             migrationBuilder.DropTable(
                 name: "UserMeters");
 

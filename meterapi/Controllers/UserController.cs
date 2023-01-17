@@ -1,9 +1,19 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography;
+using Microsoft.AspNetCore.Mvc;
 using meterapi.Data;
 using meterapi.Models;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
+using System.Security.Cryptography;
+using meterapi.Data.Mappers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.Extensions.Options;
+using System.Text;
 
 namespace meterapi.Controllers
 {
@@ -12,12 +22,162 @@ namespace meterapi.Controllers
     public class UserController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IConfiguration _configuration;
+        
 
-        public UserController(DataContext context)
+        public UserController(DataContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+
+        // GET: api/User
+        [HttpGet]
+        public IActionResult GetUsers()
+        {
+            var users = _context.Users.Include(u => u.UserMeters);
+            return Ok(users);
+        }
+
+        // GET: api/User/5
+        [HttpGet("{id}")]
+        public IActionResult GetUser(int id)
+        {
+            var user = _context.Users.Include(u => u.UserMeters).SingleOrDefault(u => u.Id == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
+
+        // PUT: api/User/5
+        [HttpPut("{id}")]
+        public IActionResult PutUser(int id, [FromBody] User user)
+        {
+            if (id != user.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingUser = _context.Users.Find(id);
+            if (existingUser == null)
+            {
+                return NotFound();
+            }
+
+            existingUser.FirstName = user.FirstName;
+            existingUser.LastName = user.LastName;
+            existingUser.Email = user.Email;
+            existingUser.RefreshToken = user.RefreshToken;
+            existingUser.TokenCreated = user.TokenCreated;
+            existingUser.TokenExpires = user.TokenExpires;
+
+            _context.SaveChanges();
+            return NoContent();
+        }
+        
+
+
+        // DELETE: api/User/5
+        [HttpDelete("{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.Id == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+            return NoContent();
         }
 
 
+        [HttpPost]
+        public async Task<ActionResult<User>> Register(UserAuthDTO request)
+        {
+            if ((_context.Users?.Any(x => x.Email == request.Email)).GetValueOrDefault())
+            {
+                return BadRequest("User with this email already exists.");
+            }
+
+            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+            var user = new User();
+            user.Email = request.Email;
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login(UserAuthDTO request)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return BadRequest("User not found.");
+            }
+
+            if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+            {
+                return BadRequest("Wrong password.");
+            }
+
+            string token = CreateToken(user);
+
+            var userDto = new UserDTO(user);
+
+            return Ok(new { token, userDto });
+        }
+
+
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512())
+            {
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512(passwordSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return computedHash.SequenceEqual(passwordHash);
+            }
+        }
     }
 }
+    
