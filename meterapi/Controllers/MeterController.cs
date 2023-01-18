@@ -23,7 +23,7 @@ namespace meterapi.Controllers
         [HttpGet]
         public IActionResult GetMeters()
         {
-            var meters = _context.Meters.Include(m => m.MeterDatas).Include(m => m.UserMeter);
+            var meters = _context.Meters;
             return Ok(meters);
         }
 
