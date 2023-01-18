@@ -7,8 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace meterapi.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
+    
+   
     public class MeterDataController : ControllerBase
     {
         private readonly DataContext _context;
@@ -34,7 +36,7 @@ namespace meterapi.Controllers
             return meterData;
         }
     
-
+         
 
         //POST: api/MeterData
         [HttpPost]
