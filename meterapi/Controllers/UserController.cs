@@ -51,32 +51,38 @@ namespace meterapi.Controllers
             return Ok(user);
         }
 
-        // PUT: api/User/5
-        [HttpPut("{id}")]
-        public IActionResult PutUser(int id, [FromBody] User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
 
-            var existingUser = _context.Users.Find(id);
-            if (existingUser == null)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserDTO request)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == id);
+            if (user == null)
             {
                 return NotFound();
             }
 
-            existingUser.FirstName = user.FirstName;
-            existingUser.LastName = user.LastName;
-            existingUser.Email = user.Email;
-            existingUser.RefreshToken = user.RefreshToken;
-            existingUser.TokenCreated = user.TokenCreated;
-            existingUser.TokenExpires = user.TokenExpires;
+            if (_context.Users.Any(x => x.Email == request.Email && x.Id != id))
+            {
+                return BadRequest("A user with this email already exists.");
+            }
 
-            _context.SaveChanges();
-            return NoContent();
+            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+            user.Email = request.Email;
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
         }
-        
+
+
+
+
 
 
         // DELETE: api/User/5
@@ -107,6 +113,8 @@ namespace meterapi.Controllers
 
             var user = new User();
             user.Email = request.Email;
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
 
@@ -138,6 +146,8 @@ namespace meterapi.Controllers
         }
 
 
+
+
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
@@ -160,6 +170,9 @@ namespace meterapi.Controllers
 
             return jwt;
         }
+     
+
+
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

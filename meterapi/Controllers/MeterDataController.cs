@@ -1,8 +1,9 @@
 ﻿using meterapi.Data;
+using meterapi.Data.Mappers;
 using meterapi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Xrm.Sdk;
+
 
 namespace meterapi.Controllers
 {
@@ -32,29 +33,52 @@ namespace meterapi.Controllers
             }
             return meterData;
         }
+    
 
+
+        //POST: api/MeterData
         [HttpPost]
-        public ActionResult<MeterData> Create(MeterData meterData)
+        public ActionResult<MeterData> Create(MeterDataDTO meterDataDTO)
         {
+            if (meterDataDTO.MeterId <= 0 || meterDataDTO.Date == null)
+            {
+                return BadRequest();
+            }
+            var meterData = new MeterData
+            {
+                Date = meterDataDTO.Date,
+                MeterId = meterDataDTO.MeterId,
+                TotalConsumptionDay = meterDataDTO.TotalConsumptionDay,
+                TotalConsumptionNight = meterDataDTO.TotalConsumptionNight,
+                AllPhaseConsumption = meterDataDTO.AllPhaseConsumption,
+                GasConsumption = meterDataDTO.GasConsumption
+            };
             _context.MeterDatas.Add(meterData);
             _context.SaveChanges();
 
             return CreatedAtAction("GetById", new { id = meterData.Id }, meterData);
         }
 
-       /* [HttpPut("{id}")]
-        public ActionResult Update(int id, MeterData meterData)
+        [HttpPut("{id}")]
+        public ActionResult Update(int id, MeterDataDTO meterDataDTO)
         {
-            if (id != meterData.Id)
+            var meterData = _context.MeterDatas.Find(id);
+            if (meterData == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+            meterData.Date = meterDataDTO.Date;
+            
+           meterData.TotalConsumptionDay = meterDataDTO.TotalConsumptionDay;
+            meterData.TotalConsumptionNight = meterDataDTO.TotalConsumptionNight;
+            meterData.AllPhaseConsumption = meterDataDTO.AllPhaseConsumption;
+            meterData.GasConsumption = meterDataDTO.GasConsumption;
 
-            _context.Entry(meterData).State = Entity.EntityState.Modified;
             _context.SaveChanges();
 
             return NoContent();
-        }*/
+        }
+
 
         [HttpDelete("{id}")]
         public ActionResult<MeterData> Delete(int id)
@@ -70,6 +94,8 @@ namespace meterapi.Controllers
 
             return meterData;
         }
+
     }
 
 }
+   

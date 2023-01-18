@@ -4,6 +4,7 @@ using meterapi.Data;
 using meterapi.Models;
 using Microsoft.Xrm.Sdk;
 using Microsoft.EntityFrameworkCore;
+using meterapi.Data.Mappers;
 
 namespace meterapi.Controllers
 {
@@ -38,25 +39,31 @@ namespace meterapi.Controllers
             return Ok(meter);
         }
 
-    /*    // PUT: api/Meter/5
+        // PUT: api/Meter/5
         [HttpPut("{id}")]
-        public IActionResult PutMeter(int id, Meter meter)
+        public IActionResult PutMeter(int id, NewMeterViewModel meter)
         {
-            if (id != meter.Id)
+            var existingMeter = _context.Meters.Find(id);
+            if (existingMeter == null)
+            {
+                return NotFound();
+            }
+
+            existingMeter.MeterAId = meter.MeterAId;
+            existingMeter.RpId = meter.RpId;
+            _context.Meters.Update(existingMeter);
+            _context.SaveChanges();
+            return NoContent();
+        }
+        // POST: api/Meter
+        [HttpPost]
+        public IActionResult PostMeter(NewMeterViewModel newMeter)
+        {
+            if (newMeter.MeterAId <= 0 || newMeter.RpId <= 0)
             {
                 return BadRequest();
             }
-
-            _context.Entry(meter).State = Entity.EntityState.Modified;
-
-            _context.SaveChanges();
-            return NoContent();
-        }*/
-
-        // POST: api/Meter
-        [HttpPost]
-        public IActionResult PostMeter(Meter meter)
-        {
+            var meter = new Meter { MeterAId = newMeter.MeterAId, RpId = newMeter.RpId };
             _context.Meters.Add(meter);
             _context.SaveChanges();
             return CreatedAtAction("GetMeter", new { id = meter.Id }, meter);
