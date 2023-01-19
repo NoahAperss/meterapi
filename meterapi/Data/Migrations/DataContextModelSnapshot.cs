@@ -30,11 +30,13 @@ namespace meterapi.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("MeterAId")
-                        .HasColumnType("int");
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -127,14 +129,16 @@ namespace meterapi.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MeterAId")
-                        .HasColumnType("int");
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MeterId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

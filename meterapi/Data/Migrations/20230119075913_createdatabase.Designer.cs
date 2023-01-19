@@ -12,8 +12,8 @@ using meterapi.Data;
 namespace meterapi.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230117121240_createdb")]
-    partial class createdb
+    [Migration("20230119075913_createdatabase")]
+    partial class createdatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,11 +33,13 @@ namespace meterapi.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("MeterAId")
-                        .HasColumnType("int");
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -130,14 +132,16 @@ namespace meterapi.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MeterAId")
-                        .HasColumnType("int");
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MeterId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

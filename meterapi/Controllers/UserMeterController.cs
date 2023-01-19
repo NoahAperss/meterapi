@@ -64,7 +64,7 @@ namespace meterapi.Controllers
 
             userMeter.MeterId = userMeterDTO.MeterId;
             userMeter.RpId = meter.RpId;
-            userMeter.MeterAId = meter.MeterAId;
+            userMeter.MeterDeviceId = meter.MeterDeviceId;
             userMeter.UserId = userMeterDTO.UserId;
             userMeter.Address = userMeterDTO.Address;
 
@@ -89,7 +89,7 @@ namespace meterapi.Controllers
             {
                 MeterId = userMeterDTO.MeterId,
                 RpId = meter.RpId,
-                MeterAId = meter.MeterAId,
+                MeterDeviceId = meter.MeterDeviceId,
                 UserId = userMeterDTO.UserId,
                 Address = userMeterDTO.Address
             };

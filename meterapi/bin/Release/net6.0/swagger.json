@@ -528,13 +528,11 @@
           "format": "int32",
           "type": "integer"
         },
-        "meterAId": {
-          "format": "int32",
-          "type": "integer"
+        "meterDeviceId": {
+          "type": "string"
         },
         "rpId": {
-          "format": "int32",
-          "type": "integer"
+          "type": "string"
         },
         "meterDatas": {
           "type": "array",
@@ -618,13 +616,11 @@
     "NewMeterViewModel": {
       "type": "object",
       "properties": {
-        "meterAId": {
-          "format": "int32",
-          "type": "integer"
+        "meterDeviceId": {
+          "type": "string"
         },
         "rpId": {
-          "format": "int32",
-          "type": "integer"
+          "type": "string"
         }
       }
     },
@@ -717,12 +713,10 @@
           "type": "integer"
         },
         "rpId": {
-          "format": "int32",
-          "type": "integer"
+          "type": "string"
         },
-        "meterAId": {
-          "format": "int32",
-          "type": "integer"
+        "meterDeviceId": {
+          "type": "string"
         },
         "userId": {
           "format": "int32",
@@ -747,12 +741,10 @@
           "type": "integer"
         },
         "rpId": {
-          "format": "int32",
-          "type": "integer"
+          "type": "string"
         },
-        "meterAId": {
-          "format": "int32",
-          "type": "integer"
+        "meterDeviceId": {
+          "type": "string"
         },
         "userId": {
           "format": "int32",

@@ -5,7 +5,7 @@ namespace meterapi.Data.Mappers
     public class NewMeterViewModel
     {
        
-        public int MeterAId { get; set; }
-        public int RpId { get; set; }
+        public string MeterDeviceId { get; set; }
+        public string RpId { get; set; }
     }
 }

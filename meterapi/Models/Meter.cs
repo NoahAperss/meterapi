@@ -9,10 +9,10 @@ namespace meterapi.Models
         public int Id { get; set; }
 
        
-        public int MeterAId { get; set; }
+        public string MeterDeviceId { get; set; }
 
     
-        public int RpId { get; set; }
+        public string RpId { get; set; }
 
         public virtual ICollection<MeterData> MeterDatas { get; set; }
         public virtual ICollection<UserMeter> UserMeter { get; set; }

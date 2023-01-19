@@ -10,9 +10,9 @@ namespace meterapi.Models
         [ForeignKey("Meter")]
         public int MeterId { get; set; }
         
-        public int RpId { get; set; }
+        public string RpId { get; set; }
 
-        public int MeterAId { get; set; }
+        public string MeterDeviceId { get; set; }
 
         [ForeignKey("User")]
         public int UserId { get; set; }

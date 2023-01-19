@@ -49,25 +49,27 @@ namespace meterapi.Controllers
                 return NotFound();
             }
 
-            existingMeter.MeterAId = meter.MeterAId;
+            existingMeter.MeterDeviceId = meter.MeterDeviceId;
             existingMeter.RpId = meter.RpId;
             _context.Meters.Update(existingMeter);
             _context.SaveChanges();
             return NoContent();
         }
+
         // POST: api/Meter
         [HttpPost]
         public IActionResult PostMeter(NewMeterViewModel newMeter)
         {
-            if (newMeter.MeterAId <= 0 || newMeter.RpId <= 0)
+            if (string.IsNullOrEmpty(newMeter.MeterDeviceId) || string.IsNullOrEmpty(newMeter.RpId))
             {
                 return BadRequest();
             }
-            var meter = new Meter { MeterAId = newMeter.MeterAId, RpId = newMeter.RpId };
+            var meter = new Meter { MeterDeviceId = newMeter.MeterDeviceId, RpId = newMeter.RpId };
             _context.Meters.Add(meter);
             _context.SaveChanges();
             return CreatedAtAction("GetMeter", new { id = meter.Id }, meter);
         }
+
 
         // DELETE: api/Meter/5
         [HttpDelete("{id}")]

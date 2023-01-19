@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace meterapi.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class createdb : Migration
+    public partial class createdatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,8 +17,8 @@ namespace meterapi.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MeterAId = table.Column<int>(type: "int", nullable: false),
-                    RpId = table.Column<int>(type: "int", nullable: false)
+                    MeterDeviceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RpId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,8 +76,8 @@ namespace meterapi.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MeterId = table.Column<int>(type: "int", nullable: false),
-                    RpId = table.Column<int>(type: "int", nullable: false),
-                    MeterAId = table.Column<int>(type: "int", nullable: false),
+                    RpId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MeterDeviceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
