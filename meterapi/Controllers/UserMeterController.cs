@@ -1,7 +1,10 @@
-﻿using meterapi.Data;
-using meterapi.Models;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using meterapi.Data;
+using meterapi.Models;
+using Microsoft.Xrm.Sdk;
+using Microsoft.EntityFrameworkCore;
+using meterapi.Data.Mappers;
 
 namespace meterapi.Controllers
 {
@@ -10,10 +13,12 @@ namespace meterapi.Controllers
     public class UserMeterController : ControllerBase
     {
         private readonly DataContext _context;
+      
 
         public UserMeterController(DataContext context)
         {
             _context = context;
+          
         }
 
         // GET: api/UserMeter
@@ -37,33 +42,73 @@ namespace meterapi.Controllers
             return Ok(userMeter);
         }
 
-        // POST: api/UserMeter
-        [HttpPost]
-        public IActionResult PostUserMeter([FromBody] UserMeter userMeter)
-        {
-            _context.UserMeters.Add(userMeter);
-            _context.SaveChanges();
-
-            return CreatedAtAction("GetUserMeter", new { id = userMeter.Id }, userMeter);
-        }
-
-        // PUT: api/UserMeter/5
+       // PUT: api/UserMeter/5
         [HttpPut("{id}")]
-        public IActionResult PutUserMeter(int id, [FromBody] UserMeter userMeter)
+        public IActionResult PutUserMeter(int id, UserMeterDTO userMeterDTO)
         {
-            if (id != userMeter.Id)
+            var userMeter = _context.UserMeters.Find(id);
+            if (userMeter == null)
+            {
+                return NotFound();
+            }
+
+            if (id != userMeterDTO.MeterId)
             {
                 return BadRequest();
             }
+            var meter = _context.Meters.Find(userMeterDTO.MeterId);
+            if (meter == null)
+            {
+                return NotFound();
+            }
 
-            _context.Entry(userMeter).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            userMeter.MeterId = userMeterDTO.MeterId;
+            userMeter.RpId = meter.RpId;
+            userMeter.MeterDeviceId = meter.MeterDeviceId;
+            userMeter.UserId = userMeterDTO.UserId;
+            userMeter.Address = userMeterDTO.Address;
+
+            _context.UserMeters.Update(userMeter);
             _context.SaveChanges();
 
             return NoContent();
         }
 
-        // DELETE: api/UserMeter/5
-        [HttpDelete("{id}")]
+
+        // POST: api/UserMeter
+        [HttpPost]
+        public IActionResult PostUserMeter(UserMeterDTO userMeterDTO)
+        {
+            var meter = _context.Meters.Find(userMeterDTO.MeterId);
+            if (meter == null)
+            {
+                return NotFound();
+            }
+
+            var userMeter = new UserMeter
+            {
+                MeterId = userMeterDTO.MeterId,
+                RpId = meter.RpId,
+                MeterDeviceId = meter.MeterDeviceId,
+                UserId = userMeterDTO.UserId,
+                Address = userMeterDTO.Address
+            };
+
+            _context.UserMeters.Add(userMeter);
+            _context.SaveChanges();
+
+            return CreatedAtAction("GetUserMeter", new { id = userMeter.Id }, userMeter);
+
+        }
+
+
+
+
+
+      
+
+            // DELETE: api/UserMeter/5
+            [HttpDelete("{id}")]
         public IActionResult DeleteUserMeter(int id)
         {
             var userMeter = _context.UserMeters.Find(id);
