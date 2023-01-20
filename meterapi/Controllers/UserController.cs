@@ -15,6 +15,9 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using System.Text;
 
+using MimeKit;
+using MailKit.Net.Smtp;
+
 
 // This is the UserController class that handles HTTP requests for the "User" resource
 namespace meterapi.Controllers
@@ -125,9 +128,72 @@ namespace meterapi.Controllers
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            await VerifyEmail(user.Email);
 
 
             return Ok(user);
+        }
+
+        [HttpGet("verify/{token}")]
+        public async Task<IActionResult> Verify(string token)
+        {
+            // Find the user with the matching token
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken == token);
+            if (user == null)
+            {
+                return NotFound("Invalid token");
+            }
+            if (user.IsEmailVerified)
+            {
+                return BadRequest("Email already verified");
+            }
+
+            // Set the user's email as verified
+            user.IsEmailVerified = true;
+            await _context.SaveChangesAsync();
+
+            return Ok("Email verified");
+        }
+
+
+        [HttpPost("verify")]
+        public async Task<IActionResult> VerifyEmail(string email)
+        {
+            // Verify the email address
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            if (user.IsEmailVerified)
+            {
+                return BadRequest("Email already verified");
+            }
+
+            // Generate a verification token
+            var token = Guid.NewGuid().ToString();
+
+
+            // Send verification email
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Elek3City Support", "elek3citysupport@pjotrb.be"));
+            message.To.Add(new MailboxAddress("", email));
+            message.Subject = "Verify Email";
+            message.Body = new TextPart("plain") { Text = $"Please click on the link to verify your email: https://meterapiproject4.azurewebsites.net/api/User/verify/{token}" };
+
+            using (var client = new SmtpClient())
+            {
+                client.Connect("smtp-auth.mailprotect.be", 587, false);
+                client.Authenticate("elek3citysupport@pjotrb.be", "GS1A05l918UX4K4lUK4O");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+
+            // Save the token in the database
+            user.VerificationToken = token;
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [HttpPost("login")]
