@@ -30,23 +30,50 @@ namespace meterapi.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Meters");
+                });
+
+            modelBuilder.Entity("meterapi.Models.MeterData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("AllPhaseConsumption")
+                        .HasColumnType("real");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<float>("GasConsumption")
+                        .HasColumnType("real");
 
                     b.Property<int>("MeterId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<float>("TotalConsumptionDay")
+                        .HasColumnType("real");
 
-                    b.Property<int>("measurement")
-                        .HasColumnType("int");
+                    b.Property<float>("TotalConsumptionNight")
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("MeterId", "RpId");
+                    b.HasIndex("MeterId");
 
-                    b.ToTable("Meters");
+                    b.ToTable("MeterDatas");
                 });
 
             modelBuilder.Entity("meterapi.Models.User", b =>
@@ -64,6 +91,9 @@ namespace meterapi.Data.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
@@ -79,11 +109,20 @@ namespace meterapi.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("ResetPasswordExpiration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResetPasswordToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("TokenCreated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("TokenExpires")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VerificationToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -102,27 +141,45 @@ namespace meterapi.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("MeterDeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MeterId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RpId")
-                        .HasColumnType("int");
+                    b.Property<string>("RpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MeterId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("UserMeters");
                 });
 
+            modelBuilder.Entity("meterapi.Models.MeterData", b =>
+                {
+                    b.HasOne("meterapi.Models.Meter", "Meter")
+                        .WithMany("MeterDatas")
+                        .HasForeignKey("MeterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Meter");
+                });
+
             modelBuilder.Entity("meterapi.Models.UserMeter", b =>
                 {
                     b.HasOne("meterapi.Models.Meter", "Meter")
-                        .WithMany("UserMeters")
-                        .HasForeignKey("UserId")
+                        .WithMany("UserMeter")
+                        .HasForeignKey("MeterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -139,7 +196,9 @@ namespace meterapi.Data.Migrations
 
             modelBuilder.Entity("meterapi.Models.Meter", b =>
                 {
-                    b.Navigation("UserMeters");
+                    b.Navigation("MeterDatas");
+
+                    b.Navigation("UserMeter");
                 });
 
             modelBuilder.Entity("meterapi.Models.User", b =>

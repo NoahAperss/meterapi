@@ -9,16 +9,13 @@ namespace meterapi.Models
         public int Id { get; set; }
 
        
-        public int MeterId { get; set; }
+        public string MeterDeviceId { get; set; }
 
     
-        public int RpId { get; set; }
+        public string RpId { get; set; }
 
-        public DateTime Date { get; set; }
-
-        public int measurement { get; set; }
-
-        public virtual ICollection<UserMeter> UserMeters { get; set; }
+        public virtual ICollection<MeterData> MeterDatas { get; set; }
+        public virtual ICollection<UserMeter> UserMeter { get; set; }
 
 
     }

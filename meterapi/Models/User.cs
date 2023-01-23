@@ -16,5 +16,9 @@ namespace meterapi.Models
         public DateTime TokenExpires { get; set; }
 
         public virtual ICollection<UserMeter> UserMeters { get; set; }
+        public string? VerificationToken { get; internal set; }
+           public bool IsEmailVerified { get; set; } = false;
+        public string? ResetPasswordToken { get; internal set; }
+        public DateTime? ResetPasswordExpiration { get; internal set; }
     }
 }
