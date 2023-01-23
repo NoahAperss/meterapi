@@ -179,7 +179,7 @@ namespace meterapi.Controllers
             message.From.Add(new MailboxAddress("Elek3City Support", "elek3citysupport@pjotrb.be"));
             message.To.Add(new MailboxAddress("", email));
             message.Subject = "Verify Email";
-            message.Body = new TextPart("plain") { Text = $"Please click on the link to verify your email: https://meterapiproject4.azurewebsites.net/api/User/verify/{token}" };
+            message.Body = new TextPart("plain") { Text = $"Please click on the link to verify your email: localhost:3000/verify?token={token}" };
 
             using (var client = new SmtpClient())
             {
@@ -197,7 +197,7 @@ namespace meterapi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserAuthDTO request)
+        public async Task<ActionResult<string>> Login(UserLogin request)
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
@@ -221,6 +221,94 @@ namespace meterapi.Controllers
 
             return Ok(new { token, userDto });
         }
+
+
+        [HttpPut("changeemail/{id}")]
+        public async Task<IActionResult> ChangeEmail(int id, ChangeEmailDTO request)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Verify that the new email is not already in use
+            if (_context.Users.Any(x => x.Email == request.NewEmail && x.Id != id))
+            {
+                return BadRequest("A user with this email already exists.");
+            }
+
+            // Update the user's email
+            user.Email = request.NewEmail;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
+        [HttpPost("forgotpassword")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            // Check if the user exists
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return BadRequest("User not found.");
+            }
+
+            // Generate a password reset token
+            var token = Guid.NewGuid().ToString();
+
+            // Save the token to the user's record
+            user.ResetPasswordToken = token;
+            user.ResetPasswordExpiration = DateTime.Now.AddMinutes(30);
+            await _context.SaveChangesAsync();
+
+            // Send the reset password email
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Elek3City Support", "elek3citysupport@pjotrb.be"));
+            message.To.Add(new MailboxAddress("", email));
+            message.Subject = "Reset Password";
+            message.Body = new TextPart("plain") { Text = $"Please click on the link to reset your password: https://meterapiproject4.azurewebsites.net/resetpassword/{token}" };
+
+            using (var client = new SmtpClient())
+            {
+                client.Connect("smtp-auth.mailprotect.be", 587, false);
+                client.Authenticate("elek3citysupport@pjotrb.be", "GS1A05l918UX4K4lUK4O");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("resetpassword/{token}")]
+        public async Task<IActionResult> ResetPassword(string token, string newPassword)
+        {
+            // Check if the token is valid
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.ResetPasswordToken == token && u.ResetPasswordExpiration > DateTime.Now);
+            if (user == null)
+            {
+                return BadRequest("Invalid token or token has expired.");
+            }
+            // Hash the new password
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(newPassword, out passwordHash, out passwordSalt);
+
+            // Update the user's password
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+            user.ResetPasswordToken = null;
+            user.ResetPasswordExpiration = null;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+
+        }
+
+
 
 
 

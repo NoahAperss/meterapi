@@ -5,89 +5,6 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/Email/verify/{token}": {
-      "post": {
-        "tags": [
-          "Email"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "token",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/Email/verify": {
-      "post": {
-        "tags": [
-          "Email"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "email",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/Email/forgotpassword": {
-      "post": {
-        "tags": [
-          "Email"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "email",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/Email/resetpassword/{token}": {
-      "post": {
-        "tags": [
-          "Email"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "token",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "query",
-            "name": "newPassword",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/api/Meter": {
       "get": {
         "tags": [
@@ -518,7 +435,7 @@
             "in": "body",
             "name": "body",
             "schema": {
-              "$ref": "#/definitions/UserAuthDTO"
+              "$ref": "#/definitions/UserLogin"
             }
           }
         ],
@@ -528,6 +445,84 @@
             "schema": {
               "type": "string"
             }
+          }
+        }
+      }
+    },
+    "/api/User/changeemail/{id}": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ChangeEmailDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/forgotpassword": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "email",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/resetpassword/{token}": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "newPassword",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
@@ -643,6 +638,14 @@
     }
   },
   "definitions": {
+    "ChangeEmailDTO": {
+      "type": "object",
+      "properties": {
+        "newEmail": {
+          "type": "string"
+        }
+      }
+    },
     "Meter": {
       "type": "object",
       "properties": {
@@ -825,6 +828,27 @@
     "UserAuthDTO": {
       "type": "object",
       "properties": {
+        "lastName": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "UserLogin": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
         "lastName": {
           "type": "string"
         },
