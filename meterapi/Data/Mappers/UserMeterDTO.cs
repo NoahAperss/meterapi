@@ -1,12 +1,16 @@
 ﻿using meterapi.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace meterapi.Data.Mappers
 {
     public class UserMeterDTO
     {
-       
+
+        
+        public int Id { get; set; }
+
         [ForeignKey("Meter")]
         public int MeterId { get; set; }
 

@@ -5,13 +5,20 @@ using meterapi.Models;
 using Microsoft.Xrm.Sdk;
 using Microsoft.EntityFrameworkCore;
 using meterapi.Data.Mappers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace meterapi.Controllers
 
 // This is the MeterController class that handles HTTP requests for the "Meter" resource
 {
     // The Route attribute specifies the route template for this controller
+
+    [Authorize]
     [Route("api/[controller]")]
+ 
+
+
 
     // The ApiController attribute enables model validation and automatic HTTP 400 responses
     [ApiController]

@@ -1,6 +1,7 @@
 ﻿using meterapi.Data;
 using meterapi.Data.Mappers;
 using meterapi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 // This is the MeterDataController class that handles HTTP requests for the "MeterData" resource
 namespace meterapi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    
-   
+
+
+
     public class MeterDataController : ControllerBase
     {
         private readonly DataContext _context;

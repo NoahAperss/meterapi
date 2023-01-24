@@ -5,11 +5,16 @@ using meterapi.Models;
 using Microsoft.Xrm.Sdk;
 using Microsoft.EntityFrameworkCore;
 using meterapi.Data.Mappers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace meterapi.Controllers
 {
+
+    [Authorize] 
     [Route("api/[controller]")]
     [ApiController]
+
+
     public class UserMeterController : ControllerBase
     {
         private readonly DataContext _context;
@@ -42,37 +47,49 @@ namespace meterapi.Controllers
             return Ok(userMeter);
         }
 
-       // PUT: api/UserMeter/5
         [HttpPut("{id}")]
         public IActionResult PutUserMeter(int id, UserMeterDTO userMeterDTO)
         {
-            var userMeter = _context.UserMeters.Find(id);
+            // Find the UserMeter object with the matching id
+            var userMeter = _context.UserMeters
+                        .Include(u => u.Meter)
+                        .Include(u => u.User)
+                        .FirstOrDefault(u => u.Id == id);
+
+            // Return a 404 error if no matching UserMeter object was found
             if (userMeter == null)
             {
-                return NotFound();
+                return NotFound("UserMeter with id " + id + " not found.");
             }
 
-            if (id != userMeterDTO.MeterId)
-            {
-                return BadRequest();
-            }
-            var meter = _context.Meters.Find(userMeterDTO.MeterId);
+            // Find the Meter object with the matching id
+            var meter = _context.Meters.FirstOrDefault(m => m.Id == userMeterDTO.MeterId);
             if (meter == null)
             {
-                return NotFound();
+                return NotFound("Meter with id " + userMeterDTO.MeterId + " not found.");
             }
 
-            userMeter.MeterId = userMeterDTO.MeterId;
+            // Find the User object with the matching id
+            var user = _context.Users.FirstOrDefault(u => u.Id == userMeterDTO.UserId);
+            if (user == null)
+            {
+                return NotFound("User with id " + userMeterDTO.UserId + " not found.");
+            }
+
+            // Update the properties of the UserMeter object
             userMeter.RpId = meter.RpId;
             userMeter.MeterDeviceId = meter.MeterDeviceId;
             userMeter.UserId = userMeterDTO.UserId;
             userMeter.Address = userMeterDTO.Address;
 
+            // Save the changes to the database
             _context.UserMeters.Update(userMeter);
             _context.SaveChanges();
 
             return NoContent();
         }
+
+
 
 
         // POST: api/UserMeter
