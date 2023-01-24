@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "meterapi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-    "version": "1.0"
+    "title": "My API",
+    "version": "v1"
   },
   "paths": {
     "/api/Meter": {
@@ -898,6 +898,10 @@
     "UserMeterDTO": {
       "type": "object",
       "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
         "meterId": {
           "format": "int32",
           "type": "integer"
@@ -917,5 +921,18 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

@@ -17,18 +17,26 @@ using System.Text;
 
 using MimeKit;
 using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Authorization;
 
 
 // This is the UserController class that handles HTTP requests for the "User" resource
 namespace meterapi.Controllers
 {
+
+
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+  
+
+
+
     public class UserController : ControllerBase
     {
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
-        
+
 
         public UserController(DataContext context, IConfiguration configuration)
         {
@@ -106,6 +114,7 @@ namespace meterapi.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpPost]
         // This action handles POST requests to the "api/User" route
         // It creates a new user based on the information in the request body (UserAuthDTO)
@@ -134,7 +143,10 @@ namespace meterapi.Controllers
             return Ok(user);
         }
 
+      
         [HttpGet("verify/{token}")]
+        [AllowAnonymous]
+
         public async Task<IActionResult> Verify(string token)
         {
             // Find the user with the matching token
@@ -155,7 +167,7 @@ namespace meterapi.Controllers
             return Ok("Email verified");
         }
 
-
+       
         [HttpPost("verify")]
         public async Task<IActionResult> VerifyEmail(string email)
         {
@@ -196,7 +208,9 @@ namespace meterapi.Controllers
             return Ok();
         }
 
+      
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<string>> Login(UserLogin request)
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.Email);
@@ -223,6 +237,7 @@ namespace meterapi.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpPut("changeemail/{id}")]
         public async Task<IActionResult> ChangeEmail(int id, ChangeEmailDTO request)
         {
@@ -247,7 +262,7 @@ namespace meterapi.Controllers
             return Ok();
         }
 
-
+        [AllowAnonymous]
         [HttpPost("forgotpassword")]
         public async Task<IActionResult> ForgotPassword(string email)
         {
@@ -283,7 +298,7 @@ namespace meterapi.Controllers
 
             return Ok();
         }
-
+        [AllowAnonymous]
         [HttpPost("resetpassword/{token}")]
         public async Task<IActionResult> ResetPassword(string token, string newPassword)
         {
@@ -366,4 +381,3 @@ namespace meterapi.Controllers
 
     }
 }
-    
