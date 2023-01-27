@@ -18,6 +18,7 @@ using System.Text;
 using MimeKit;
 using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json.Linq;
 
 
 // This is the UserController class that handles HTTP requests for the "User" resource
@@ -143,6 +144,8 @@ namespace meterapi.Controllers
             return Ok(user);
         }
 
+
+
       
         [HttpGet("verify/{token}")]
         [AllowAnonymous]
@@ -167,8 +170,10 @@ namespace meterapi.Controllers
             return Ok("Email verified");
         }
 
+
        
         [HttpPost("verify")]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyEmail(string email)
         {
             // Verify the email address
@@ -238,30 +243,37 @@ namespace meterapi.Controllers
 
 
         [AllowAnonymous]
-        [HttpPut("changeemail/{id}")]
-        public async Task<IActionResult> ChangeEmail(int id, ChangeEmailDTO request)
+        [HttpPut("changeemail")]
+        public async Task<IActionResult> ChangeEmail(ChangeEmailDTO request)
         {
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == request.OldEmail);
             if (user == null)
             {
-                return NotFound();
+                return BadRequest("User not found.");
             }
 
             // Verify that the new email is not already in use
-            if (_context.Users.Any(x => x.Email == request.NewEmail && x.Id != id))
+            if (_context.Users.Any(x => x.Email == request.NewEmail))
             {
                 return BadRequest("A user with this email already exists.");
             }
 
+            // Verify that the provided password matches the user's current password
+            if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+            {
+                return BadRequest("Invalid password");
+            }
+
             // Update the user's email
             user.Email = request.NewEmail;
+            user.IsEmailVerified = false;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
+            await VerifyEmail(user.Email);
 
             return Ok();
         }
-
         [AllowAnonymous]
         [HttpPost("forgotpassword")]
         public async Task<IActionResult> ForgotPassword(string email)
@@ -286,7 +298,7 @@ namespace meterapi.Controllers
             message.From.Add(new MailboxAddress("Elek3City Support", "elek3citysupport@pjotrb.be"));
             message.To.Add(new MailboxAddress("", email));
             message.Subject = "Reset Password";
-            message.Body = new TextPart("plain") { Text = $"Please click on the link to reset your password: https://meterapiproject4.azurewebsites.net/resetpassword/{token}" };
+            message.Body = new TextPart("plain") { Text = $"Please click on the link to reset your password: localhost:3000/resetpassword?token={token}" };
 
             using (var client = new SmtpClient())
             {
@@ -300,7 +312,7 @@ namespace meterapi.Controllers
         }
         [AllowAnonymous]
         [HttpPost("resetpassword/{token}")]
-        public async Task<IActionResult> ResetPassword(string token, string newPassword)
+        public async Task<IActionResult> ResetPassword(string token, newPasswordDTO newPassword)
         {
             // Check if the token is valid
             var user = await _context.Users.SingleOrDefaultAsync(u => u.ResetPasswordToken == token && u.ResetPasswordExpiration > DateTime.Now);
@@ -310,8 +322,7 @@ namespace meterapi.Controllers
             }
             // Hash the new password
             byte[] passwordHash, passwordSalt;
-            CreatePasswordHash(newPassword, out passwordHash, out passwordSalt);
-
+            CreatePasswordHash(newPassword.newPassword, out passwordHash, out passwordSalt);
             // Update the user's password
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
@@ -320,8 +331,42 @@ namespace meterapi.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-
         }
+
+
+
+        [HttpPost("changepassword")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO passwords)
+        {
+            //Retrieve the user from the database using the email provided in the ChangePasswordDTO
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == passwords.email);
+            //If the user does not exist, return a bad request
+            if (user == null)
+            {
+                return BadRequest("Invalid user");
+            }
+
+            //Verify that the old password provided matches the password on file
+            if (!VerifyPasswordHash(passwords.oldPassword, user.PasswordHash, user.PasswordSalt))
+            {
+                return BadRequest("Invalid password");
+            }
+
+            //Create new password hash and salt for the new password provided
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(passwords.newPassword, out passwordHash, out passwordSalt);
+
+            //Update the user's password hash and salt in the database
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            //Save changes to the database
+            await _context.SaveChangesAsync();
+
+            //Return an OK status
+            return Ok();
+        }
+
 
 
 
@@ -356,7 +401,7 @@ namespace meterapi.Controllers
 
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
+        {          
             // Create a new instance of the HMACSHA512 algorithm
             using (var hmac = new HMACSHA512())
             {
