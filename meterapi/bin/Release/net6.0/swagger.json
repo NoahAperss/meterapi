@@ -449,7 +449,7 @@
         }
       }
     },
-    "/api/User/changeemail/{id}": {
+    "/api/User/changeemail": {
       "put": {
         "tags": [
           "User"
@@ -461,13 +461,6 @@
           "application/*+json"
         ],
         "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
           {
             "in": "body",
             "name": "body",
@@ -507,6 +500,12 @@
         "tags": [
           "User"
         ],
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
         "parameters": [
           {
             "in": "path",
@@ -515,9 +514,38 @@
             "type": "string"
           },
           {
-            "in": "query",
-            "name": "newPassword",
-            "type": "string"
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/newPasswordDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/changepassword": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ChangePasswordDTO"
+            }
           }
         ],
         "responses": {
@@ -643,6 +671,26 @@
       "properties": {
         "newEmail": {
           "type": "string"
+        },
+        "oldEmail": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "ChangePasswordDTO": {
+      "type": "object",
+      "properties": {
+        "newPassword": {
+          "type": "string"
+        },
+        "oldPassword": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
         }
       }
     },
@@ -745,6 +793,14 @@
           "type": "string"
         },
         "rpId": {
+          "type": "string"
+        }
+      }
+    },
+    "newPasswordDTO": {
+      "type": "object",
+      "properties": {
+        "newPassword": {
           "type": "string"
         }
       }
