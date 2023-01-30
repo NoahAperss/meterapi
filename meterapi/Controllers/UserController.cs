@@ -29,7 +29,7 @@ namespace meterapi.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-  
+
 
 
 
@@ -146,7 +146,7 @@ namespace meterapi.Controllers
 
 
 
-      
+
         [HttpGet("verify/{token}")]
         [AllowAnonymous]
 
@@ -171,7 +171,7 @@ namespace meterapi.Controllers
         }
 
 
-       
+
         [HttpPost("verify")]
         [AllowAnonymous]
         public async Task<IActionResult> VerifyEmail(string email)
@@ -213,7 +213,85 @@ namespace meterapi.Controllers
             return Ok();
         }
 
-      
+
+
+        [HttpGet("verifyEmailChangeToken/{token}")]
+        [AllowAnonymous]
+
+        public async Task<IActionResult> VerifyEmailChangeToken(string token, string newMail)
+        {
+            // Find the user with the matching token
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.VerificationToken == token);
+            if (user == null)
+            {
+                return NotFound("Invalid token");
+            }
+            if (user.IsEmailVerified)
+            {
+                return BadRequest("Email already verified");
+            }
+
+            // Set the user's email as verified
+            user.IsEmailVerified = true;
+            user.Email = newMail;
+            await _context.SaveChangesAsync();
+
+            return Ok("Email verified");
+        }
+
+
+
+        [HttpPost("verifyEmailChange")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyEmailChange(string email, string newMail)
+        {
+            // Verify the email address
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var user1 = await _context.Users.FirstOrDefaultAsync(u => u.Email == newMail);
+            if (user1 != null)
+            {
+                return NotFound("Email already being used");
+            }
+
+
+            if (user.IsEmailVerified)
+            {
+                return BadRequest("Email already verified");
+            }
+
+            // Generate a verification token
+            var token = Guid.NewGuid().ToString();
+
+
+            // Send verification email
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Elek3City Support", "elek3citysupport@pjotrb.be"));
+            message.To.Add(new MailboxAddress("", newMail));
+            message.Subject = "Verify Email";
+            message.Body = new TextPart("plain") { Text = $"Please click on the link to verify your email: localhost:3000/verifyEmailChangeToken?token={token}&email={newMail}" };
+
+            using (var client = new SmtpClient())
+            {
+                client.Connect("smtp-auth.mailprotect.be", 587, false);
+                client.Authenticate("elek3citysupport@pjotrb.be", "GS1A05l918UX4K4lUK4O");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+
+            // Save the token in the database
+            user.VerificationToken = token;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<string>> Login(UserLogin request)
@@ -265,12 +343,12 @@ namespace meterapi.Controllers
             }
 
             // Update the user's email
-            user.Email = request.NewEmail;
+           
             user.IsEmailVerified = false;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            await VerifyEmail(user.Email);
+            await VerifyEmailChange(request.OldEmail, request.NewEmail);
 
             return Ok();
         }
@@ -401,7 +479,7 @@ namespace meterapi.Controllers
 
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {          
+        {
             // Create a new instance of the HMACSHA512 algorithm
             using (var hmac = new HMACSHA512())
             {
