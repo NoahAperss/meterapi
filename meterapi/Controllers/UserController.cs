@@ -135,8 +135,7 @@ namespace meterapi.Controllers
             user.LastName = request.LastName;
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
-
-            _context.Users.Add(user);
+           _context.Users.Add(user);
             await _context.SaveChangesAsync();
             await VerifyEmail(user.Email);
 
@@ -231,7 +230,10 @@ namespace meterapi.Controllers
                 return BadRequest("Email already verified");
             }
 
+
+
             // Set the user's email as verified
+            user.IsFirstLogin = false;
             user.IsEmailVerified = true;
             user.Email = newMail;
             await _context.SaveChangesAsync();
@@ -302,10 +304,19 @@ namespace meterapi.Controllers
                 return BadRequest("User not found.");
             }
 
-            if (!user.IsEmailVerified)
+
+
+            if (!user.IsEmailVerified && !user.IsFirstLogin)
             {
                 return BadRequest("Email not verified.");
             }
+
+            if (user.IsFirstLogin && !user.IsEmailVerified)
+            {
+
+                user.IsFirstLogin = false;
+            }
+
 
             if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
             {
@@ -343,7 +354,8 @@ namespace meterapi.Controllers
             }
 
             // Update the user's email
-           
+
+            user.IsFirstLogin = true; 
             user.IsEmailVerified = false;
 
             _context.Users.Update(user);
